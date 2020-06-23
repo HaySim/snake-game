@@ -28,18 +28,24 @@ food.color("red")
 food.penup()
 food.goto(0,100)
 
+segments = []
+
 # Functions
 def go_up():
-    head.direction = "up"
+    if head.direction != "down":
+        head.direction = "up"
 
 def go_down():
-    head.direction = "down"
+    if head.direction != "up":
+        head.direction = "down"
 
 def go_left():
-    head.direction = "left"
+    if head.direction != "right":
+        head.direction = "left"
 
 def go_right():
-    head.direction = "right"
+    if head.direction != "left":
+        head.direction = "right"
 
 def move():
     if head.direction == "up":
@@ -69,13 +75,61 @@ window.onkeypress(go_right, "Right")
 while True:
     window.update()
 
+    # Check for a collision with the border
+    if head.xcor() > 280 or head.xcor() < -280 or head.ycor() > 280 or head.ycor() < -280:
+        time.sleep(1)
+        head.goto(0,0)
+        head.direction = "stop"
+
+        # Hide the segments
+        for segment in segments:
+            segment.goto(1000, 1000)
+
+        # Clear the segments list
+        segments.clear() 
+
+    # Check for a collision with the food
     if head.distance(food) < 20:
         # Move the food to a random spot
         x = random.randint(-280, 280)
         y = random.randint(-280, 280)
         food.goto(x,y)
 
+        # Add a segment
+        new_segment = turtle.Turtle()
+        new_segment.speed(0)
+        new_segment.shape("circle")
+        new_segment.color("grey")
+        new_segment.penup()
+        segments.append(new_segment)
+
+    # Move the end segments first in reverse order
+    for index in range(len(segments)-1, 0, -1):
+        x = segments[index-1].xcor()
+        y = segments[index-1].ycor()
+        segments[index].goto(x, y)
+
+    # Move segment 0 to where the head is
+    if len(segments) > 0:
+        x = head.xcor()
+        y = head.ycor()
+        segments[0].goto(x, y)
+
     move()
+
+    # Check for head collisions with the body segments
+    for segment in segments:
+        if segment.distance(head) < 20:
+            time.sleep(1)
+            head.goto(0,0)
+            head.direction = "stop"
+        
+            # Hide the segments
+            for segment in segments:
+                segment.goto(1000, 1000)
+
+            # Clear the segments list
+            segments.clear()
 
     time.sleep(delay)
 
